@@ -12,7 +12,7 @@ resource "aws_ecs_task_definition" "service_task_def" {
   container_definitions = jsonencode([
     {
       name      = local.toto_microservice_name
-      image     = format("%s.dkr.ecr.eu-west-1.amazonaws.com/%s:%s", var.aws_account_id, local.toto_microservice_name, var.container_image_tag)
+      image     = format("%s.dkr.ecr.eu-west-1.amazonaws.com/%s-%s:%s", var.aws_account_id, local.toto_microservice_name, var.toto_environment, var.container_image_tag)
       environment = [
         {
           name = "ENVIRONMENT", 
