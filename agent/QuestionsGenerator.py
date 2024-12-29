@@ -1,3 +1,4 @@
+from typing import List
 import boto3
 from botocore.exceptions import ClientError
 import json
@@ -8,6 +9,16 @@ from totoapicontroller.model.ExecutionContext import ExecutionContext
 
 client = boto3.client("bedrock-runtime", region_name="eu-west-1")
 
+class GeneratedQuestions: 
+    response_time: float 
+    response_time_unit: str 
+    questions: List[str]
+    
+    def __init__(self, response_time: float, response_time_unit: str, questions: List[str]):
+        self.response_time = response_time
+        self.response_time_unit = response_time_unit
+        self.questions = questions
+    
 class QuestionsGenerator: 
     
     model_id = 'eu.anthropic.claude-3-5-sonnet-20240620-v1:0'
@@ -25,7 +36,7 @@ class QuestionsGenerator:
             self.bucket = self.client.get_bucket('totolive-tome-bucket')
 
 
-    def generate_questions(self, num_questions: int = 10): 
+    def generate_questions(self, num_questions: int = 10) -> GeneratedQuestions: 
         """Generates a list of questions
 
         Params
@@ -71,10 +82,11 @@ class QuestionsGenerator:
             start_time = time.time()
             
             # Send the message to the model, using a basic inference configuration.
+            # Using a higher temperature because I do want some variance in the questions, with t=0 I always get the same questions
             response = client.converse(
                 modelId=self.model_id,
                 messages=conversation,
-                inferenceConfig={"maxTokens": 2000, "temperature": 0, "topP": 0.9},
+                inferenceConfig={"maxTokens": 2000, "temperature": 0.3, "topP": 0.9},
             )
             
             end_time = time.time()
@@ -85,20 +97,17 @@ class QuestionsGenerator:
             questions = json.loads(response_text)['questions']
         
             # Extract and print the response text.
-            return {
-                "responseTime": end_time - start_time, 
-                "responseTimeUnit": "seconds", 
-                "questions": questions
-            }
+            return GeneratedQuestions(
+                response_time = end_time - start_time, 
+                response_time_unit = "seconds", 
+                questions = questions
+            )
             
         except (json.JSONDecodeError) as e: 
             print(f'Error decoding JSON. Expected json from LLM but got {response_text}')
-            return {
-                "code": 500, 
-                "msg": "Error decoding JSON. Expected json from LLM but got something else.",
-                "llmAnswer": response_text
-            }
+            raise e
         
         except (ClientError, Exception) as e:
             print(f"ERROR: Can't invoke '{self.model_id}'. Reason: {e}")
             exit(1)
+            
