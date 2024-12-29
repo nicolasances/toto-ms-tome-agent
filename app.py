@@ -6,7 +6,7 @@ from dlg.test import test
 
 app = Flask(__name__)
 # CORS(app, origins=["*"])
-CORS(app, resources={r"/*": {"origins": "*", "methods": ["GET", "POST", "PUT", "OPTIONS"], "allow_headers": ["Content-Type", "Authorization", "toto-service", "x-correlation-id"]}})
+CORS(app, resources={r"/*": {"origins": "*", "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"], "allow_headers": ["Content-Type", "Authorization", "toto-service", "x-correlation-id", "auth-provider"]}})
 
 @app.route('/', methods=['GET'])
 def smoke():
