@@ -2,6 +2,7 @@ from pymongo import MongoClient
 from flask import Request
 from agent.QuestionsGenerator import QuestionsGenerator
 from config.Config import Config
+from datetime import datetime
 
 from totoapicontroller.TotoDelegateDecorator import toto_delegate
 from totoapicontroller.model.UserContext import UserContext
@@ -33,7 +34,9 @@ def start_quiz(request: Request, user_context: UserContext, exec_context: Execut
             "sectionId": '98as890da8s09d8a90s8d', 
             "sectionName": "Cortes Invasion of Mexico", 
             "questionsGenerationTime": generator_response.response_time, 
-            "questionsGenerationTimeUnit": generator_response.response_time_unit
+            "questionsGenerationTimeUnit": generator_response.response_time_unit, 
+            "startedOn": datetime.now().strftime('%Y%m%d'), 
+            "startedAt": datetime.now().strftime('%H:%M')
         }
         
         quiz_id = quizes.insert_one(quiz).inserted_id
