@@ -1,6 +1,7 @@
 from flask import Flask, request
 from flask_cors import CORS
 
+from dlg.getRunningQuiz import get_running_quiz
 from dlg.startQuiz import start_quiz
 from dlg.test import test
 
@@ -15,6 +16,10 @@ def smoke():
 @app.route('/quizzes', methods=['POST'])
 def post_quiz(): 
     return start_quiz(request)
+
+@app.route('/quizzes/running', methods=['GET'])
+def get_quiz_running(): 
+    return get_running_quiz(request)
 
 @app.route('/test', methods=['GET'])
 def testing(): 
