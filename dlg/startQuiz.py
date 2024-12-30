@@ -36,7 +36,8 @@ def start_quiz(request: Request, user_context: UserContext, exec_context: Execut
             "questionsGenerationTime": generator_response.response_time, 
             "questionsGenerationTimeUnit": generator_response.response_time_unit, 
             "startedOn": datetime.now().strftime('%Y%m%d'), 
-            "startedAt": datetime.now().strftime('%H:%M')
+            "startedAt": datetime.now().strftime('%H:%M'), 
+            "numQuestions": num_questions
         }
         
         quiz_id = quizes.insert_one(quiz).inserted_id

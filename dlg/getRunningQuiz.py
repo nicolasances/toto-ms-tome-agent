@@ -6,6 +6,8 @@ from totoapicontroller.TotoDelegateDecorator import toto_delegate
 from totoapicontroller.model.UserContext import UserContext
 from totoapicontroller.model.ExecutionContext import ExecutionContext
 
+from model.Quiz import Quiz
+
 @toto_delegate(config_class=Config)
 def get_running_quiz(request: Request, user_context: UserContext, exec_context: ExecutionContext): 
     
@@ -21,14 +23,16 @@ def get_running_quiz(request: Request, user_context: UserContext, exec_context: 
         quiz_questions = db['quizQuestions']
         
         # 1. Retrieve the running quiz
-        quiz = quizes.find_one({
+        quiz_bson = quizes.find_one({
             "finishedOn": {"$exists": False}
         })
         
-        # Make the id serializable
-        quiz["_id"] = str(quiz["_id"])
+        # 2. Retrieve all questions from the quiz
+        questions_bson = quiz_questions.find({"quizId": str(quiz_bson["_id"])})
         
-        return quiz 
+        quiz = Quiz.from_bson(quiz_bson)
+        
+        return quiz.to_json()
     
     except Exception as e: 
         print(f'ERROR: {e}')
