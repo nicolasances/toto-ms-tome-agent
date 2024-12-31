@@ -3,8 +3,8 @@ from flask_cors import CORS
 
 from dlg.getNextQuestion import get_next_question
 from dlg.getRunningQuiz import get_running_quiz
+from dlg.rateQuestion import rate_answer
 from dlg.startQuiz import start_quiz
-from dlg.test import test
 
 app = Flask(__name__)
 # CORS(app, origins=["*"])
@@ -26,9 +26,11 @@ def get_quiz_running():
 def get_quiz_next_question(quizId): 
     return get_next_question(request)
 
-@app.route('/test', methods=['GET'])
-def testing(): 
-    return test(request)
+@app.route('/answers', methods=['POST'])
+def post_answer(): 
+    return rate_answer(request)
+
+
 
 if __name__ == '__main__':
     app.run()

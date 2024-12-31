@@ -1,6 +1,6 @@
 from pymongo import MongoClient
 from flask import Request
-from agent.QuestionsGenerator import QuestionsGenerator
+from agent.questions import QuestionsGenerator
 from config.Config import Config
 from datetime import datetime
 
@@ -15,6 +15,9 @@ def start_quiz(request: Request, user_context: UserContext, exec_context: Execut
     
     client = None
     
+    topic_code = 'cortes'
+    section_code = 'in-mexico-noche-triste'
+    
     try: 
         client = MongoClient(config.get_mongo_connection_string())
         
@@ -25,14 +28,14 @@ def start_quiz(request: Request, user_context: UserContext, exec_context: Execut
         # 1. Generate questions on that topic
         num_questions = 5
         
-        generator_response = QuestionsGenerator(exec_context).generate_questions(num_questions=num_questions)
+        generator_response = QuestionsGenerator(exec_context).generate_questions(topicCode=topic_code, sectionCode=section_code, num_questions=num_questions)
         
         # 2. Save the quiz with the questions generation time
         quiz = {
-            "topicId": "890829081098as90d8a90s8d90a", 
+            "topicCode": topic_code, 
             "topicName": "Cortes", 
-            "sectionId": '98as890da8s09d8a90s8d', 
-            "sectionName": "Cortes Invasion of Mexico", 
+            "sectionCode": section_code, 
+            "sectionName": "The Invasion of Mexico until La Noche Triste", 
             "questionsGenerationTime": generator_response.response_time, 
             "questionsGenerationTimeUnit": generator_response.response_time_unit, 
             "startedOn": datetime.now().strftime('%Y%m%d'), 

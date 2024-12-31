@@ -3,9 +3,9 @@ import boto3
 from botocore.exceptions import ClientError
 import json
 import time
-import os
-from google.cloud import storage
 from totoapicontroller.model.ExecutionContext import ExecutionContext
+
+from kb.kb import KnowledgeBase
 
 client = boto3.client("bedrock-runtime", region_name="eu-west-1")
 
@@ -22,21 +22,14 @@ class GeneratedQuestions:
 class QuestionsGenerator: 
     
     model_id = 'eu.anthropic.claude-3-5-sonnet-20240620-v1:0'
-    knowledge_base_folder = 'kb'
     
     def __init__(self, exec_context: ExecutionContext):
-        self.client = storage.Client()
         self.exec_context = exec_context;
         self.logger = exec_context.logger
         self.cid = exec_context.cid
-        
-        if os.getenv('ENVIRONMENT') == 'dev':
-            self.bucket = self.client.get_bucket('totoexperiments-tome-bucket')
-        else: 
-            self.bucket = self.client.get_bucket('totolive-tome-bucket')
 
 
-    def generate_questions(self, num_questions: int = 10) -> GeneratedQuestions: 
+    def generate_questions(self, topicCode: str, sectionCode: str, num_questions: int = 10) -> GeneratedQuestions: 
         """Generates a list of questions
 
         Params
@@ -48,14 +41,7 @@ class QuestionsGenerator:
         - a list of questions
         """
         # 1. Load the context
-        kb_file_path = f'{self.knowledge_base_folder}/kb_cortes_mexico.txt'
-        
-        blob = self.bucket.blob(kb_file_path)
-        
-        self.logger.log(self.cid, f'Reading Knowledge Base file: {blob.name} from GCS bucket {self.bucket.name}')
-
-        with blob.open('r') as file:
-            kb = file.read()
+        kb = KnowledgeBase(self.exec_context).get_knowledge(topicCode, sectionCode)
 
         # 2. Define the System Prompt
         system_prompt = f"""

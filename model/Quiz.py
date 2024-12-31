@@ -2,9 +2,9 @@
 class Quiz: 
     
     id: str
-    topic_id: str
+    topic_code: str
     topic_name: str
-    section_id: str 
+    section_code: str 
     section_name: str 
     started_on: str 
     num_questions: int 
@@ -20,9 +20,9 @@ class Quiz:
         
         q = Quiz()    
         q.id = str(data['_id'])
-        q.topic_id = data['topicId']
+        q.topic_code = data['topicCode']
         q.topic_name = data['topicName']
-        q.section_id = data['sectionId']
+        q.section_code = data['sectionCode']
         q.section_name = data['sectionName']
         q.started_on = data['startedOn']
         q.num_questions = data.get('numQuestions', 5)
