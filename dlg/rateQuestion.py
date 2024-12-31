@@ -3,6 +3,7 @@ from pymongo import MongoClient, ASCENDING
 from flask import Request
 from agent.rating import AnswerRating, RatingAgent
 from config.Config import Config
+import traceback
 
 from totoapicontroller.TotoDelegateDecorator import toto_delegate
 from totoapicontroller.model.UserContext import UserContext
@@ -50,12 +51,17 @@ def rate_answer(request: Request, user_context: UserContext, exec_context: Execu
         quiz = Quiz.from_bson(quiz_bson)
         
         # 2. Rate the answer
-        rating: AnswerRating = RatingAgent(exec_context, quiz.topic_code, quiz.section_code).rate_answer(question.question, answer).to_json()
+        rating: AnswerRating = RatingAgent(exec_context, quiz.topic_code, quiz.section_code).rate_answer(question.question, answer)
         
-        return rating
+        # 3. Save the rating
+        exec_context.logger.log(exec_context.cid, f'Saving the Question with the Answer and Rating ({rating.rating}/{rating.max_rating})')
+        
+        question.rate_and_update(answer, rating, quiz_questions)
+        
+        return rating.to_json()
     
     except Exception as e: 
-        print(f'ERROR: {e}')
+        traceback.print_exc()
         return {
             "code": 500, 
             "msg": "Server Error", 
