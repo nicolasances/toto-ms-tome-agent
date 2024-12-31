@@ -1,4 +1,9 @@
 
+from typing import List
+
+from model.Question import Question
+
+
 class Quiz: 
     
     id: str
@@ -13,7 +18,7 @@ class Quiz:
     max_score: int
 
     @staticmethod
-    def from_bson(data): 
+    def from_bson(data, questions: List[Question]): 
         
         if data is None: 
             return Quiz();
@@ -26,9 +31,21 @@ class Quiz:
         q.section_name = data['sectionName']
         q.started_on = data['startedOn']
         q.num_questions = data.get('numQuestions', 5)
+        
+        # Computed fields
         q.num_questions_answered = 0 
         q.score = 0
         q.max_score = 5
+        
+        summed_score = 0
+        
+        for question in questions: 
+            if question.answered_on is not None: 
+                q.num_questions_answered = q.num_questions_answered + 1
+                summed_score = summed_score + question.rating
+        
+        if q.num_questions_answered != 0: 
+            q.score = summed_score / q.num_questions_answered
         
         return q
         

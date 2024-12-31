@@ -6,6 +6,7 @@ from totoapicontroller.TotoDelegateDecorator import toto_delegate
 from totoapicontroller.model.UserContext import UserContext
 from totoapicontroller.model.ExecutionContext import ExecutionContext
 
+from model.Question import Question
 from model.Quiz import Quiz
 
 @toto_delegate(config_class=Config)
@@ -30,7 +31,11 @@ def get_running_quiz(request: Request, user_context: UserContext, exec_context: 
         # 2. Retrieve all questions from the quiz
         questions_bson = quiz_questions.find({"quizId": str(quiz_bson["_id"])})
         
-        quiz = Quiz.from_bson(quiz_bson)
+        questions = []
+        for q in questions_bson: 
+            questions.append(Question.from_bson(q))
+        
+        quiz = Quiz.from_bson(quiz_bson, questions)
         
         return quiz.to_json()
     

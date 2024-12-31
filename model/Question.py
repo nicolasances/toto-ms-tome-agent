@@ -13,13 +13,13 @@ class Question:
     quiz_id: str
     question_num: int
     num_questions_in_quiz: int
-    answer: str 
-    answered_on: str 
-    answered_at: str 
-    rating: float
-    max_rating: int 
-    explanations: str 
-    detailed_explanation: str 
+    answer: str = None
+    answered_on: str = None
+    answered_at: str = None 
+    rating: float = None
+    max_rating: int  = None
+    explanations: str  = None
+    detailed_explanation: str = None 
 
     @staticmethod
     def from_bson(data): 
@@ -33,6 +33,15 @@ class Question:
         q.quiz_id = data['quizId']
         q.question_num = data['questionNum']
         q.num_questions_in_quiz = data['numQuestions']
+        
+        if data.get('answeredAt') is not None: 
+            q.answer = data['answer']
+            q.answered_on = data['answeredOn']
+            q.answered_at = data['answeredAt']
+            q.rating = data['rating']
+            q.max_rating = data['maxRating']
+            q.explanations = data['explanations']
+            q.detailed_explanation = data['detailedExplanation']
         
         return q
     
