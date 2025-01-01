@@ -1,3 +1,4 @@
+import traceback
 from pymongo import MongoClient
 from flask import Request
 from config.Config import Config
@@ -28,6 +29,9 @@ def get_running_quiz(request: Request, user_context: UserContext, exec_context: 
             "finishedOn": {"$exists": False}
         })
         
+        if quiz_bson is None: 
+            return {}
+        
         # 2. Retrieve all questions from the quiz
         questions_bson = quiz_questions.find({"quizId": str(quiz_bson["_id"])})
         
@@ -40,7 +44,7 @@ def get_running_quiz(request: Request, user_context: UserContext, exec_context: 
         return quiz.to_json()
     
     except Exception as e: 
-        print(f'ERROR: {e}')
+        traceback.print_exc()
         return {
             "code": 500, 
             "msg": "Server Error", 
