@@ -12,14 +12,11 @@ from model.Quiz import Quiz
 from model.TotoError import TotoError
 
 @toto_delegate(config_class=Config)
-def get_next_question(request: Request, user_context: UserContext, exec_context: ExecutionContext): 
-    """Retrieves the next unanswered question for the specified quiz. 
+def get_quiz_questions(request: Request, user_context: UserContext, exec_context: ExecutionContext): 
+    """Retrieves all the questions of a quiz
 
     Args:
         request (Request): must contain a path element called quizId
-
-    Returns:
-        _type_: _description_
     """
     # 1. Extract the params
     quiz_id = request.view_args.get('quizId')
@@ -32,26 +29,21 @@ def get_next_question(request: Request, user_context: UserContext, exec_context:
         client = MongoClient(config.get_mongo_connection_string())
         
         db = client['tome']
-        quizes = db['quizes']
         quiz_questions = db['quizQuestions']
         
-        # 1. Retrieve the running quiz
-        quiz_bson = quizes.find_one({"_id": ObjectId(quiz_id)})
-        
-        # 2. Retrieve the first unanswered question
-        questions_bson = quiz_questions.find({
-            "quizId": quiz_id, 
-            "answeredOn": {"$exists": False}
-        }).sort('questionNum', ASCENDING).to_list()
+        # 1. Retrieve the first unanswered question
+        questions_bson = quiz_questions.find({ "quizId": quiz_id }).sort('questionNum', ASCENDING).to_list()
         
         # Error: no questions
         if len(questions_bson) == 0: 
             return TotoError(500, 'The Quiz does not have any question', 'no-questions').to_json()
         
-        first_unanswered_question = Question.from_bson(questions_bson[0])
+        # 3. Return the questions
+        questions = []
+        for q in questions_bson: 
+            questions.append(Question.from_bson(q).to_json())
         
-        # 3. Return the question
-        return first_unanswered_question.to_json()
+        return {"questions": questions}
     
     except Exception as e: 
         print(f'ERROR: {e}')

@@ -2,6 +2,7 @@ from flask import Flask, request
 from flask_cors import CORS
 
 from dlg.getNextQuestion import get_next_question
+from dlg.getQuizQuestions import get_quiz_questions
 from dlg.getRunningQuiz import get_running_quiz
 from dlg.rateQuestion import rate_answer
 from dlg.startQuiz import start_quiz
@@ -21,6 +22,10 @@ def post_quiz():
 @app.route('/quizzes/running', methods=['GET'])
 def get_quiz_running(): 
     return get_running_quiz(request)
+
+@app.route('/quizzes/<string:quizId>/questions', methods=['GET'])
+def get_questions_of_quiz(quizId): 
+    return get_quiz_questions(request)
 
 @app.route('/quizzes/<string:quizId>/questions/next', methods=['GET'])
 def get_quiz_next_question(quizId): 

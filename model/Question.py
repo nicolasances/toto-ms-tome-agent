@@ -90,5 +90,9 @@ class Question:
             "question": self.question, 
             "quizId": self.quiz_id, 
             "questionNum": self.question_num, 
-            "numQuestionsInQuiz": self.num_questions_in_quiz
+            "numQuestionsInQuiz": self.num_questions_in_quiz,
+            "answer": self.answer, 
+            "answerOn": self.answered_on, 
+            "rating": self.rating, 
+            "maxRating": self.max_rating
         }
