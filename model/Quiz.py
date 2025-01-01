@@ -18,8 +18,8 @@ class Quiz:
     num_questions_answered: int
     score: float
     max_score: int
-    finished_on: str 
-    finished_at: str
+    finished_on: str = None 
+    finished_at: str = None 
 
     @staticmethod
     def from_bson(data, questions: List[Question] = None): 
@@ -35,6 +35,8 @@ class Quiz:
         q.section_name = data['sectionName']
         q.started_on = data['startedOn']
         q.num_questions = data.get('numQuestions', 5)
+        q.finished_on = data.get('finishedOn')
+        q.finished_at = data.get('finishedAt')
         
         # Computed fields
         q.num_questions_answered = 0 
@@ -79,5 +81,6 @@ class Quiz:
             "numQuestions": self.num_questions, 
             "numQuestionsAnswered": self.num_questions_answered, 
             "score": self.score, 
-            "maxScore": self.max_score
+            "maxScore": self.max_score, 
+            "finishedOn": self.finished_on, 
         }
