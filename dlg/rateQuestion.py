@@ -58,7 +58,22 @@ def rate_answer(request: Request, user_context: UserContext, exec_context: Execu
         
         question.rate_and_update(answer, rating, quiz_questions)
         
-        return rating.to_json()
+        # 4. Check if the quiz is over
+        unanswered_questions = quiz_questions.find({ "quizId": question.quiz_id,  "answeredOn": {"$exists": False} }).to_list()
+        
+        quiz_finished = False
+        
+        # If there are no more unanswered questions, the Quiz is finished
+        if len(unanswered_questions) == 0: 
+            
+            exec_context.logger.log(exec_context.cid, f'The Quiz is Finished!')
+            
+            quiz_finished = True
+            
+            # 4.1. Update the Quiz
+            quiz.close_quiz(quizes)
+            
+        return rating.to_json(quiz_finished=quiz_finished)
     
     except Exception as e: 
         traceback.print_exc()

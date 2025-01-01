@@ -1,6 +1,8 @@
 
+from datetime import datetime
 from typing import List
-
+from bson import ObjectId
+from pymongo.collection import Collection
 from model.Question import Question
 
 
@@ -16,6 +18,8 @@ class Quiz:
     num_questions_answered: int
     score: float
     max_score: int
+    finished_on: str 
+    finished_at: str
 
     @staticmethod
     def from_bson(data, questions: List[Question] = None): 
@@ -49,6 +53,22 @@ class Quiz:
                 q.score = summed_score / q.num_questions_answered
         
         return q
+    
+    def close_quiz(self, collection: Collection): 
+        """Marks the Quiz as finished and updates the collection
+
+        Args:
+            collection (Collection): the collection to update
+        """
+        # 1. Mark as finished
+        self.finished_on = datetime.now().strftime('%Y%m%d'), 
+        self.finished_at = datetime.now().strftime('%H:%M'), 
+        
+        # 2. Update the collection
+        collection.update_one({"_id": ObjectId(self.id)}, {"$set": {
+            "finishedOn": self.finished_on,
+            "finishedAt": self.finished_at
+        }})
         
     def to_json(self): 
         return {
