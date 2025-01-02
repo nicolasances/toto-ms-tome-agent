@@ -26,6 +26,7 @@ def get_quiz(request: Request, user_context: UserContext, exec_context: Executio
         
         db = client['tome']
         quizes = db['quizes']
+        quiz_questions = db['quizQuestions']
         
         # 1. Retrieve the running quiz
         quiz_bson = quizes.find_one({"_id": ObjectId(quiz_id)})
@@ -33,7 +34,14 @@ def get_quiz(request: Request, user_context: UserContext, exec_context: Executio
         if quiz_bson is None: 
             return {}
         
-        quiz = Quiz.from_bson(quiz_bson)
+        # 2. Retrieve all questions from the quiz
+        questions_bson = quiz_questions.find({"quizId": quiz_id})
+        
+        questions = []
+        for q in questions_bson: 
+            questions.append(Question.from_bson(q))
+        
+        quiz = Quiz.from_bson(quiz_bson, questions)
         
         return quiz.to_json()
     
