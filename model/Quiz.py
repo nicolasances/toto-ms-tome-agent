@@ -63,8 +63,8 @@ class Quiz:
             collection (Collection): the collection to update
         """
         # 1. Mark as finished
-        self.finished_on = datetime.now().strftime('%Y%m%d'), 
-        self.finished_at = datetime.now().strftime('%H:%M'), 
+        self.finished_on = datetime.now().strftime('%Y%m%d')
+        self.finished_at = datetime.now().strftime('%H:%M') 
         
         # 2. Update the collection
         collection.update_one({"_id": ObjectId(self.id)}, {"$set": {
