@@ -1,5 +1,4 @@
 import os 
-import string
 from totoapicontroller.model.TotoConfig import TotoConfig
 from totoapicontroller.model.singleton import singleton
 from totoapicontroller.model.TotoConfig import CloudProvider
@@ -7,9 +6,9 @@ from totoapicontroller.model.TotoConfig import CloudProvider
 @singleton
 class Config(TotoConfig): 
     
-    mongo_host: string
-    mongo_user: string 
-    mongo_pswd: string
+    mongo_host: str
+    mongo_user: str 
+    mongo_pswd: str
     
     def __init__(self):
         super().__init__(cloud_provider=CloudProvider.AWS)
@@ -28,11 +27,11 @@ class Config(TotoConfig):
     def get_mongo_connection_string(self): 
         return f"mongodb://{self.mongo_user}:{self.mongo_pswd}@{self.mongo_host}:27017/tome"
 
-    def get_tome_bucket_name(self) -> string: 
+    def get_tome_bucket_name(self) -> str: 
         """Retrieves the name of the GCS Bucket that contains all the tome data
 
         Returns:
-            string: the (unique) name of the bucket
+            str: the (unique) name of the bucket
         """
         if os.getenv('ENVIRONMENT') == 'prod':
             return 'totolive-tome-bucket'

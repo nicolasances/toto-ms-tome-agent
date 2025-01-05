@@ -5,6 +5,7 @@ from dlg.getNextQuestion import get_next_question
 from dlg.getQuiz import get_quiz
 from dlg.getQuizQuestions import get_quiz_questions
 from dlg.getRunningQuiz import get_running_quiz
+from dlg.getTopics import get_topics
 from dlg.rateQuestion import rate_answer
 from dlg.startQuiz import start_quiz
 
@@ -41,6 +42,9 @@ def get_quiz_next_question(quizId):
 def post_answer(): 
     return rate_answer(request)
 
+@app.route('/topics', methods=['GET'])
+def get_topics_list():
+    return get_topics(request)
 
 
 if __name__ == '__main__':
