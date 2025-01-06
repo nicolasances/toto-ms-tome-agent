@@ -6,6 +6,13 @@ class TopicSection:
     
     title: str 
     code: str 
+    order: int = None
+    
+    def __init__(self, title: str, code: str, order: int = None): 
+        self.title = title
+        self.code = code
+        self.order = order
+    
     
 @dataclass
 class Topic: 
@@ -19,5 +26,5 @@ class Topic:
         return Topic(
             title=bson["title"], 
             code=bson["code"], 
-            sections=[TopicSection(**section) for section in bson["sections"]]
+            sections=[TopicSection(title=section["title"], code=section["code"], order=section.get("order")) for section in bson["sections"]]
         )
