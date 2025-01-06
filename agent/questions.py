@@ -1,20 +1,28 @@
+from dataclasses import dataclass
 from typing import List
 import boto3
 from botocore.exceptions import ClientError
 import json
 import time
 from totoapicontroller.model.ExecutionContext import ExecutionContext
-
+import concurrent.futures
 from kb.kb import KnowledgeBase
+from model import topic
+from model.topic import Topic, TopicSection
 
 client = boto3.client("bedrock-runtime", region_name="eu-west-1")
 
+@dataclass
 class GeneratedQuestions: 
+    topic: Topic
+    section: TopicSection
+    questions: List[str]
     response_time: float 
     response_time_unit: str 
-    questions: List[str]
     
-    def __init__(self, response_time: float, response_time_unit: str, questions: List[str]):
+    def __init__(self, topic: Topic, section: TopicSection, response_time: float, response_time_unit: str, questions: List[str]):
+        self.topic = topic
+        self.section = section
         self.response_time = response_time
         self.response_time_unit = response_time_unit
         self.questions = questions
@@ -28,8 +36,26 @@ class QuestionsGenerator:
         self.logger = exec_context.logger
         self.cid = exec_context.cid
 
+    def generate_topic_review_questions(self, topic: Topic) -> List[GeneratedQuestions]:
+        """This method generates a set of questions for a topic review. 
+        It will generate questions for each section of a topic. 
+        It parallelizes the generation of questions for each section, sending multiple parallel requests to the LLM.
 
-    def generate_questions(self, topicCode: str, sectionCode: str, num_questions: int = 10) -> GeneratedQuestions: 
+        Args:
+            topic (Topic): the topic to generate questions for
+
+        Returns:
+            List[GeneratedQuestions]: a list of GeneratedQuestions
+        """
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = [executor.submit(self.generate_questions, topic, section, num_questions=3) for section in topic.sections]
+            results = [future.result() for future in concurrent.futures.as_completed(futures)]
+        
+        # Convert the results into a list of GeneratedQuestions
+        return results
+            
+
+    def generate_questions(self, topic: Topic, section: TopicSection, num_questions: int = 5) -> GeneratedQuestions: 
         """Generates a list of questions
 
         Params
@@ -41,11 +67,11 @@ class QuestionsGenerator:
         - a list of questions
         """
         # 1. Load the context
-        kb = KnowledgeBase(self.exec_context).get_knowledge(topicCode, sectionCode)
+        kb = KnowledgeBase(self.exec_context).get_knowledge(topic.code, section.code)
 
         # 2. Define the System Prompt
         system_prompt = f"""
-        You are acting as a Quiz's question generating engine. Your role is, given a knowledge base (hereafter KB) to generate 10 questions based on the content of KB. 
+        You are acting as a Quiz's question generating engine. Your role is, given a knowledge base (hereafter KB) to generate {num_questions} questions based on the content of KB. 
         The questions CAN ONLY REFER to the content of KB. 
         The following is the KB that is given to you: 
         ----------------
@@ -84,6 +110,8 @@ class QuestionsGenerator:
         
             # Extract and print the response text.
             return GeneratedQuestions(
+                topic=topic,
+                section=section,
                 response_time = end_time - start_time, 
                 response_time_unit = "seconds", 
                 questions = questions

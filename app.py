@@ -8,6 +8,7 @@ from dlg.getRunningQuiz import get_running_quiz
 from dlg.getTopics import get_topics
 from dlg.rateQuestion import rate_answer
 from dlg.startQuiz import start_quiz
+from dlg.tr.new import new_topic_review
 
 app = Flask(__name__)
 # CORS(app, origins=["*"])
@@ -16,6 +17,10 @@ CORS(app, resources={r"/*": {"origins": "*", "methods": ["GET", "POST", "PUT", "
 @app.route('/', methods=['GET'])
 def smoke():
     return {"api": "toto-ms-tome-agent", "running": True}
+
+@app.route('/topicreviews', methods=['POST'])
+def post_topic_review(): 
+    return new_topic_review(request)
 
 @app.route('/quizzes', methods=['POST'])
 def post_quiz(): 
