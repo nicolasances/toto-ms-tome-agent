@@ -4,10 +4,9 @@ from flask_cors import CORS
 from dlg.getNextQuestion import get_next_question
 from dlg.getQuiz import get_quiz
 from dlg.getQuizQuestions import get_quiz_questions
-from dlg.getRunningQuiz import get_running_quiz
 from dlg.getTopics import get_topics
 from dlg.rateQuestion import rate_answer
-from dlg.startQuiz import start_quiz
+from dlg.tr.get import get_running_topic_review, get_topic_review
 from dlg.tr.new import new_topic_review
 
 app = Flask(__name__)
@@ -19,16 +18,19 @@ def smoke():
     return {"api": "toto-ms-tome-agent", "running": True}
 
 @app.route('/topicreviews', methods=['POST'])
-def post_topic_review(): 
+def post_topic_review_route(): 
     return new_topic_review(request)
 
-@app.route('/quizzes', methods=['POST'])
-def post_quiz(): 
-    return start_quiz(request)
+@app.route('/topicreviews/running', methods=['GET'])
+def get_running_topic_review_route(): 
+    return get_running_topic_review(request)
 
-@app.route('/quizzes/running', methods=['GET'])
-def get_quiz_running(): 
-    return get_running_quiz(request)
+@app.route('/topicreviews/<string:id>', methods=['GET'])
+def get_topic_review_route(id):
+    return get_topic_review(request)
+
+
+
 
 @app.route('/quizzes/<string:quizId>', methods=['GET'])
 def get_quiz_detail(quizId): 

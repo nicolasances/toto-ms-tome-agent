@@ -38,7 +38,7 @@ class QuestionsGenerator:
         self.logger = exec_context.logger
         self.cid = exec_context.cid
 
-    def generate_topic_review_questions(self, topic: Topic) -> List[TopicReviewQuestion]:
+    def generate_topic_review_questions(self, topic: Topic, topic_review_id: str) -> List[TopicReviewQuestion]:
         """This method generates a set of questions for a topic review. 
         It will generate questions for each section of a topic. 
         It parallelizes the generation of questions for each section, sending multiple parallel requests to the LLM.
@@ -70,7 +70,7 @@ class QuestionsGenerator:
                 order = i * len(result.questions) + j + 1
                 
                 trq = TopicReviewQuestion(
-                    topic_review_id = result.topic_code,
+                    topic_review_id = topic_review_id,
                     section_code = result.section.code,
                     section_title = result.section.title,
                     question = question,

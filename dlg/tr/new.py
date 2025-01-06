@@ -34,7 +34,7 @@ def new_topic_review(request: Request, user_context: UserContext, exec_context: 
         tr_id = tr_collection.insert_one(tr.to_bson()).inserted_id
         
         # 3. Generate questions on that topic
-        topic_review_questions = QuestionsGenerator(exec_context).generate_topic_review_questions(topic)
+        topic_review_questions = QuestionsGenerator(exec_context).generate_topic_review_questions(topic, str(tr_id))
 
         # 4. Save the questions to the database 
         for trq in topic_review_questions: 
