@@ -19,13 +19,13 @@ class AnswerRating:
         self.explanations = explanations 
         self.detailedExplanations = detailedExplanations
         
-    def to_json(self, quiz_finished: bool = False): 
+    def to_json(self, topic_review_finished: bool = False): 
         return {
             "rating": self.rating,
             "maxRating": self.max_rating, 
             "explanations": self.explanations, 
             "detailedExplanations": self.detailedExplanations,
-            "quizFinished": quiz_finished
+            "topicReviewFinished": topic_review_finished
         }
     
     

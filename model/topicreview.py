@@ -47,7 +47,22 @@ class TopicReview:
         tr.max_rating = data.get('maxRating')
         
         return tr
+    
+    def close(self, rating: float, collection: Collection): 
+        """Marks the Topic Review as finished and updates the collection
 
+        Args:
+            collection (Collection): the collection to update
+        """
+        # 1. Mark as finished
+        self.completed_on = datetime.now().strftime('%Y%m%d')
+        self.rating = rating
+        
+        # 2. Update the collection
+        collection.update_one({"_id": ObjectId(self.id)}, {"$set": {
+            "completedOn": self.completed_on, 
+            "rating": rating,
+        }})
 
 
 @dataclass
