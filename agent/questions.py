@@ -7,21 +7,23 @@ import time
 from totoapicontroller.model.ExecutionContext import ExecutionContext
 import concurrent.futures
 from kb.kb import KnowledgeBase
-from model import topic
 from model.topic import Topic, TopicSection
+from model.topicreview import TopicReviewQuestion
 
 client = boto3.client("bedrock-runtime", region_name="eu-west-1")
 
 @dataclass
 class GeneratedQuestions: 
-    topic: Topic
+    topic_code: str 
+    topic_title: str 
     section: TopicSection
     questions: List[str]
     response_time: float 
     response_time_unit: str 
     
     def __init__(self, topic: Topic, section: TopicSection, response_time: float, response_time_unit: str, questions: List[str]):
-        self.topic = topic
+        self.topic_code = topic.code
+        self.topic_title = topic.title
         self.section = section
         self.response_time = response_time
         self.response_time_unit = response_time_unit
@@ -36,7 +38,7 @@ class QuestionsGenerator:
         self.logger = exec_context.logger
         self.cid = exec_context.cid
 
-    def generate_topic_review_questions(self, topic: Topic) -> List[GeneratedQuestions]:
+    def generate_topic_review_questions(self, topic: Topic) -> List[TopicReviewQuestion]:
         """This method generates a set of questions for a topic review. 
         It will generate questions for each section of a topic. 
         It parallelizes the generation of questions for each section, sending multiple parallel requests to the LLM.
@@ -47,12 +49,38 @@ class QuestionsGenerator:
         Returns:
             List[GeneratedQuestions]: a list of GeneratedQuestions
         """
-        with concurrent.futures.ThreadPoolExecutor() as executor:
-            futures = [executor.submit(self.generate_questions, topic, section, num_questions=3) for section in topic.sections]
-            results = [future.result() for future in concurrent.futures.as_completed(futures)]
+        num_questions_per_section = 3
+        num_questions_in_tr = len(topic.sections) * num_questions_per_section
         
-        # Convert the results into a list of GeneratedQuestions
-        return results
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = [executor.submit(self.generate_questions, topic, section, num_questions=num_questions_per_section) for section in topic.sections]
+            results:  List[GeneratedQuestions] = [future.result() for future in concurrent.futures.as_completed(futures)]
+        
+        # In the results, every item of the list is a GeneratedQuestions object, that contains the questions for a section of the topic
+        # Create a list of TopicReviewQuestion
+        questions: List[TopicReviewQuestion] = []
+        
+        # Sort results by section order
+        results.sort(key=lambda x: x.section.order)
+        
+        # For each item in results, extract the list of questions and translate into a list of TopicReviewQuestion objects to be appended to the questions array
+        for i, result in enumerate(results):
+            for j, question in enumerate(result.questions):
+                # Define the sequence order of the question in the topic review. Order is 1-indexed
+                order = i * len(result.questions) + j + 1
+                
+                trq = TopicReviewQuestion(
+                    topic_review_id = result.topic_code,
+                    section_code = result.section.code,
+                    section_title = result.section.title,
+                    question = question,
+                    question_num = order,
+                    num_questions_in_tr = num_questions_in_tr
+                )
+                
+                questions.append(trq)
+        
+        return questions
             
 
     def generate_questions(self, topic: Topic, section: TopicSection, num_questions: int = 5) -> GeneratedQuestions: 

@@ -1,6 +1,5 @@
 import traceback
-from bson import ObjectId
-from pymongo import MongoClient, ASCENDING
+from pymongo import MongoClient
 from flask import Request
 from agent.questions import QuestionsGenerator
 from config.Config import Config
@@ -9,9 +8,7 @@ from totoapicontroller.TotoDelegateDecorator import toto_delegate
 from totoapicontroller.model.UserContext import UserContext
 from totoapicontroller.model.ExecutionContext import ExecutionContext
 
-from model.Question import Question
-from model.Quiz import Quiz
-from model.TotoError import TotoError
+from model.topicreview import TopicReview
 from util.topicreview import find_next_topic
 
 @toto_delegate(config_class=Config)
@@ -27,16 +24,27 @@ def new_topic_review(request: Request, user_context: UserContext, exec_context: 
         
         db = client['tome']
         tr_collection = db['topicReviews']
+        tr_questions_coll = db['topicReviewQuestions']
         
         # 1. Find the next topic to review
         topic = find_next_topic(db['topics'])
         
-        # 1. Generate questions on that topic
-        generator_response = QuestionsGenerator(exec_context).generate_topic_review_questions(topic)
+        # 2. Create a TopicReview and save it to the database
+        tr = TopicReview(topic.code)
+        tr_id = tr_collection.insert_one(tr.to_bson()).inserted_id
         
-        print(generator_response)
-        
-        return generator_response
+        # 3. Generate questions on that topic
+        topic_review_questions = QuestionsGenerator(exec_context).generate_topic_review_questions(topic)
+
+        # 4. Save the questions to the database 
+        for trq in topic_review_questions: 
+            tr_questions_coll.insert_one(trq.to_bson())
+            
+        # 5. Return the TopicReview and the questions
+        return {
+            "topicReview": tr, 
+            "questions": topic_review_questions
+        }
 
         
     except Exception as e: 
