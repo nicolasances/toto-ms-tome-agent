@@ -30,7 +30,7 @@ def new_topic_review(request: Request, user_context: UserContext, exec_context: 
         topic = find_next_topic(db['topics'])
         
         # 2. Create a TopicReview and save it to the database
-        tr = TopicReview(topic.code)
+        tr = TopicReview(topic.code, topic.title)
         tr_id = tr_collection.insert_one(tr.to_bson()).inserted_id
         tr.id = str(tr_id)
         
