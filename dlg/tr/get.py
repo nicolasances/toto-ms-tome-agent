@@ -79,7 +79,7 @@ def get_topic_review(request: Request, user_context: UserContext, exec_context: 
         
         # 2. Revtrieve the questions of that topic review sorted by question order
         tr_questions = tr_questions_coll.find({ "topicReviewId": str(tr_bson["_id"]) }).sort({"questionNum": ASCENDING})
-    
+        
         # 2. Return the TopicReview and its questions
         return {
             "topicReview": TopicReview.from_bson(tr_bson).to_json(), 

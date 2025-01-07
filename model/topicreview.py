@@ -12,21 +12,24 @@ from agent import rating
 class TopicReview: 
     
     topic_code: str
+    topic_title: str 
     created_on: str 
     id: str = None
     completed_on: str = None
     rating: float = None
     max_rating: int = 5
     
-    def __init__(self, topic_code: str):
+    def __init__(self, topic_code: str, topic_title: str):
         self.topic_code = topic_code
         self.created_on = datetime.now().strftime('%Y%m%d')
         self.completed_on = None
+        self.topic_title = topic_title
     
     def to_bson(self): 
         
         return {
             "topicCode": self.topic_code, 
+            "topicTitle": self.topic_title,
             "createdOn": self.created_on, 
             "completedOn": self.completed_on, 
             "rating": self.rating,
@@ -37,6 +40,7 @@ class TopicReview:
         return {
             "id": self.id, 
             "topicCode": self.topic_code, 
+            "topicTitle": self.topic_title,
             "createdOn": self.created_on, 
             "completedOn": self.completed_on, 
             "rating": self.rating,
@@ -49,7 +53,7 @@ class TopicReview:
         if data is None: 
             return TopicReview()
         
-        tr = TopicReview(data['topicCode'])
+        tr = TopicReview(data['topicCode'], data['topicTitle'])
         tr.id = str(data['_id'])
         tr.created_on = data['createdOn']
         tr.completed_on = data.get('completedOn')
