@@ -20,11 +20,13 @@ class Topic:
     title: str 
     code: str 
     sections: List[TopicSection]
+    blog_url: str = None
     
     @staticmethod
     def from_bson(bson): 
         return Topic(
             title=bson["title"], 
             code=bson["code"], 
-            sections=[TopicSection(title=section["title"], code=section["code"], order=section.get("order")) for section in bson["sections"]]
+            sections=[TopicSection(title=section["title"], code=section["code"], order=section.get("order")) for section in bson["sections"]], 
+            blog_url=bson.get['blog_url']
         )
