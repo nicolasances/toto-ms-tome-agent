@@ -32,6 +32,16 @@ class TopicReview:
             "rating": self.rating,
             "maxRating": self.max_rating
         }
+        
+    def to_json(self):
+        return {
+            "id": self.id, 
+            "topicCode": self.topic_code, 
+            "createdOn": self.created_on, 
+            "completedOn": self.completed_on, 
+            "rating": self.rating,
+            "maxRating": self.max_rating
+        }
                 
     @staticmethod
     def from_bson(data):
@@ -77,6 +87,14 @@ class AnswerRating:
         self.rating = rating 
         self.explanations = explanations 
         self.detailedExplanations = detailedExplanations
+        
+    def to_json(self):
+        return {
+            "rating": self.rating, 
+            "maxRating": self.max_rating, 
+            "explanations": self.explanations, 
+            "detailedExplanations": self.detailedExplanations
+        }
         
     
 
@@ -156,7 +174,26 @@ class TopicReviewQuestion:
             "explanations": self.explanations, 
             "detailedExplanation": self.detailed_explanation
         }
-        
+    
+    def to_json(self):
+        """Translate this object to a JSON dictionary
+        """
+        return {
+            "id": self.id, 
+            "topicReviewId": self.topic_review_id, 
+            "sectionCode": self.section_code, 
+            "sectionTitle": self.section_title, 
+            "question": self.question, 
+            "questionNum": self.question_num, 
+            "numQuestions": self.num_questions_in_tr,
+            "answer": self.answer, 
+            "answeredOn": self.answered_on, 
+            "answeredAt": self.answered_at, 
+            "rating": self.rating, 
+            "maxRating": self.max_rating, 
+            "explanations": self.explanations, 
+            "detailedExplanation": self.detailed_explanation
+        }
     
     def rate_and_update(self, answer: str, rating: AnswerRating, collection: Collection): 
         """Updates the Question with the Answer and its Rating

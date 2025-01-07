@@ -35,8 +35,8 @@ def get_running_topic_review(request: Request, user_context: UserContext, exec_c
     
         # 2. Return the TopicReview and its questions
         return {
-            "topicReview": TopicReview.from_bson(tr_bson).__dict__, 
-            "questions": [TopicReviewQuestion.from_bson(q).__dict__ for q in tr_questions]
+            "topicReview": TopicReview.from_bson(tr_bson).to_json(), 
+            "questions": [TopicReviewQuestion.from_bson(q).to_json() for q in tr_questions]
         }
     
     except Exception as e: 
@@ -82,8 +82,8 @@ def get_topic_review(request: Request, user_context: UserContext, exec_context: 
     
         # 2. Return the TopicReview and its questions
         return {
-            "topicReview": TopicReview.from_bson(tr_bson).__dict__, 
-            "questions": [TopicReviewQuestion.from_bson(q).__dict__ for q in tr_questions]
+            "topicReview": TopicReview.from_bson(tr_bson).to_json(), 
+            "questions": [TopicReviewQuestion.from_bson(q).to_json() for q in tr_questions]
         }
     
     except Exception as e: 

@@ -43,8 +43,8 @@ def new_topic_review(request: Request, user_context: UserContext, exec_context: 
             
         # 5. Return the TopicReview and the questions
         return {
-            "topicReview": tr, 
-            "questions": topic_review_questions
+            "topicReview": tr.to_json(), 
+            "questions": [q.to_json() for q in topic_review_questions]
         }
 
         

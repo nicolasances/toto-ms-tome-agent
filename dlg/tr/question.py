@@ -48,7 +48,7 @@ def get_next_question(request: Request, user_context: UserContext, exec_context:
         first_unanswered_question = TopicReviewQuestion.from_bson(questions_bson[0])
         
         # 3. Return the question
-        return first_unanswered_question.__dict__
+        return first_unanswered_question.to_json()
     
     except Exception as e: 
         print(f'ERROR: {e}')
