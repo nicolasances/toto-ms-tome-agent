@@ -28,5 +28,5 @@ class Topic:
             title=bson["title"], 
             code=bson["code"], 
             sections=[TopicSection(title=section["title"], code=section["code"], order=section.get("order")) for section in bson["sections"]], 
-            blog_url=bson.get['blog_url']
+            blog_url=bson.get('blog_url')
         )
