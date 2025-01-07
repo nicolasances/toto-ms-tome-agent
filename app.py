@@ -5,7 +5,7 @@ from dlg.getTopics import get_topics
 from dlg.tr.answer import rate_answer
 from dlg.tr.get import get_running_topic_review, get_topic_review
 from dlg.tr.new import new_topic_review
-from dlg.tr.question import get_next_question, get_questions
+from dlg.tr.question import get_next_question, get_question, get_questions
 
 app = Flask(__name__)
 # CORS(app, origins=["*"])
@@ -35,6 +35,10 @@ def get_topic_review_next_question_route(id):
 @app.route('/topicreviews/<string:id>/questions', methods=['GET'])
 def get_topic_review_questions_route(id): 
     return get_questions(request)
+
+@app.route('/topicreviews/questions/<string:id>', methods=['GET'])
+def get_topic_review_question_route(id): 
+    return get_question(request)
 
 @app.route('/answers', methods=['POST'])
 def post_answer(): 

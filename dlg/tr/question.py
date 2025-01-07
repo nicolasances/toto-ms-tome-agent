@@ -1,3 +1,5 @@
+import traceback
+from bson import ObjectId
 from pymongo import MongoClient, ASCENDING
 from flask import Request
 from config.Config import Config
@@ -51,7 +53,7 @@ def get_next_question(request: Request, user_context: UserContext, exec_context:
         return first_unanswered_question.to_json()
     
     except Exception as e: 
-        print(f'ERROR: {e}')
+        traceback.print_exc()
         return {
             "code": 500, 
             "msg": "Server Error", 
@@ -99,7 +101,7 @@ def get_questions(request: Request, user_context: UserContext, exec_context: Exe
         return {"questions": questions}
     
     except Exception as e: 
-        print(f'ERROR: {e}')
+        traceback.print_exc()
         return {
             "code": 500, 
             "msg": "Server Error", 
@@ -110,3 +112,45 @@ def get_questions(request: Request, user_context: UserContext, exec_context: Exe
         if client: 
             client.close()
     
+    
+@toto_delegate(config_class=Config)
+def get_question(request: Request, user_context: UserContext, exec_context: ExecutionContext): 
+    """Retrieves a specific question from a topic review
+
+    Args:
+        request (Request): must contain a path element called id
+    """
+    # 1. Extract the params
+    q_id = request.view_args.get('id')
+    
+    config: Config = exec_context.config
+    
+    client = None
+    
+    try: 
+        client = MongoClient(config.get_mongo_connection_string())
+        
+        db = client['tome']
+        tr_questions_coll = db['topicReviewQuestions']
+        
+        # 1. Retrieve the qusetion identified by the q_id
+        question_bson = tr_questions_coll.find_one({"_id": ObjectId(q_id)})
+        
+        if question_bson is None: 
+            return {}
+    
+        return TopicReviewQuestion.from_bson(question_bson).to_json()
+    
+    except Exception as e: 
+        traceback.print_exc()
+        return {
+            "code": 500, 
+            "msg": "Server Error", 
+            "error": str(e)
+        }
+    
+    finally: 
+        if client: 
+            client.close()
+    
+
