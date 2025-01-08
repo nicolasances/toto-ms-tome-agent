@@ -11,6 +11,7 @@ from totoapicontroller.model.UserContext import UserContext
 from totoapicontroller.model.ExecutionContext import ExecutionContext
 
 from model.TotoError import TotoValidationError
+from model.topic import Topic
 from model.topicreview import TopicReview, TopicReviewQuestion
 
 @toto_delegate(config_class=Config)
@@ -35,6 +36,7 @@ def provide_refresher(request: Request, user_context: UserContext, exec_context:
         db = client['tome']
         tr_coll = db['topicReviews']
         tr_questions_coll = db['topicReviewQuestions']
+        topics_coll = db['topics']
         
         # 1. Retrieve the question
         question_bson = tr_questions_coll.find_one({"_id": ObjectId(question_id)})
@@ -46,10 +48,14 @@ def provide_refresher(request: Request, user_context: UserContext, exec_context:
         
         topic_review = TopicReview.from_bson(topic_review_bson)
         
-        # 2. Use the Topic Refresher Agent to generate a refresher
+        # 3. Retrieve the Topic, for better context in the answer
+        topic = topics_coll.find_one({"code": topic_review.topic_code})
+        
+        # 4. Use the Topic Refresher Agent to generate a refresher
         refersher_text = TopicRefresherAgent(exec_context).generate_refresher(question.question, question.answer, topic_review.topic_code, question.section_code)
         
         return {
+            "topic": Topic.from_bson(topic).__dict__,
             "refresher": refersher_text
         }
     
