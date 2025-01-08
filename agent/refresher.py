@@ -31,23 +31,14 @@ class TopicRefresherAgent:
         
         # 2. Define the First Prompt
         system_prompt = f"""
-        You are a specialist on the following topic (here identified by its code): {topic_code}. You base your information on the provided Knowledge Base.  
+        You are a specialist on the following topic (here identified by its code): {topic_code}. You base your knowledge on the provided Knowledge Base.  
         You are helping a user of our app to refresh (review) the topic you are an expert on. 
-        The user has been given a question to test his or her level of understanding and has given an answer. 
-        Based on the content of the Knowledge Base, you are asked to provide a refresher to the user to help him (her) better remember the topic next time. 
+        Based on the content of the Knowledge Base, you are asked to provide a refresher to the user to help him (her) better remember the topic.
         This is the KNOWLEDGE BASE:
         ----------------
         {kb}
         ----------------
-        This is the QUESTION that was given to the user: 
-        ----------------
-        {question}
-        ----------------
-        This is the user's ANSWER: 
-        ----------------
-        {answer}
-        ----------------
-        Provide a refresher of the topic to the user that will help him (her) better remember the topic. 
+        Provide a refresher of the topic to the user that will help him (her) better remember the topic. It should be a well explained, detailed, refresher. Add contextual information about the topic, as needed.
         """
 
         conversation = [
