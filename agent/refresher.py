@@ -34,7 +34,7 @@ class TopicRefresherAgent:
         You are a specialist on the following topic (here identified by its code): {topic_code}. You base your information on the provided Knowledge Base.  
         You are helping a user of our app to refresh (review) the topic you are an expert on. 
         The user has been given a question to test his or her level of understanding and has given an answer. 
-        Based on the question and the answer, and based on the content of the Knowledge Base, you are asked to provide a refresher to the user to help him (her) better remember the topic next time. 
+        Based on the content of the Knowledge Base, you are asked to provide a refresher to the user to help him (her) better remember the topic next time. 
         This is the KNOWLEDGE BASE:
         ----------------
         {kb}
@@ -47,7 +47,7 @@ class TopicRefresherAgent:
         ----------------
         {answer}
         ----------------
-        Provide a refresher of the topic to the user, based on his (or her) answer to the question, that will help him (her) better remember the topic. 
+        Provide a refresher of the topic to the user that will help him (her) better remember the topic. 
         """
 
         conversation = [
