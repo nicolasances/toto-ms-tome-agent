@@ -8,6 +8,7 @@ from totoapicontroller.TotoDelegateDecorator import toto_delegate
 from totoapicontroller.model.UserContext import UserContext
 from totoapicontroller.model.ExecutionContext import ExecutionContext
 
+from model.topic import Topic
 from model.topicreview import TopicReview
 from util.topicreview import find_next_topic
 
@@ -15,6 +16,11 @@ from util.topicreview import find_next_topic
 def new_topic_review(request: Request, user_context: UserContext, exec_context: ExecutionContext): 
     """Creates a new Topic Review. 
     """
+    data = request.get_json()
+    
+    # 1. Extract the params
+    topic_code = data.get('topicCode', None)
+    
     config: Config = exec_context.config
     
     client = None
@@ -25,9 +31,14 @@ def new_topic_review(request: Request, user_context: UserContext, exec_context: 
         db = client['tome']
         tr_collection = db['topicReviews']
         tr_questions_coll = db['topicReviewQuestions']
+        topics_coll = db['topics']
         
         # 1. Find the next topic to review
-        topic = find_next_topic(db['topics'])
+        if topic_code is not None: 
+            topic_bson = topics_coll.find_one({"topicCode": topic_code})
+            topic = Topic.from_bson(topic_bson)
+        else: 
+            topic = find_next_topic(db['topics'])
         
         # 2. Create a TopicReview and save it to the database
         tr = TopicReview(topic.code, topic.title)
@@ -46,6 +57,41 @@ def new_topic_review(request: Request, user_context: UserContext, exec_context: 
             "topicReview": tr.to_json(), 
             "questions": [q.to_json() for q in topic_review_questions]
         }
+
+        
+    except Exception as e: 
+        traceback.print_exc()
+        return {
+            "code": 500, 
+            "msg": "Server Error", 
+            "error": str(e)
+        }
+    
+    finally: 
+        if client: 
+            client.close()
+    
+
+
+@toto_delegate(config_class=Config)
+def pick_next_topic_to_review(request: Request, user_context: UserContext, exec_context: ExecutionContext): 
+    """Picks the next topic to review
+    """
+    config: Config = exec_context.config
+    
+    client = None
+    
+    try: 
+        client = MongoClient(config.get_mongo_connection_string())
+        
+        db = client['tome']
+        tr_collection = db['topicReviews']
+        
+        # 1. Find the next topic to review
+        topic = find_next_topic(db['topics'])
+        
+        # 5. Return the TopicReview and the questions
+        return topic.__dict__
 
         
     except Exception as e: 

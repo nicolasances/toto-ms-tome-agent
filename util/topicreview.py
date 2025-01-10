@@ -1,3 +1,4 @@
+from random import random
 import re
 from pymongo.collection import Collection
 from model.topic import Topic
@@ -13,7 +14,12 @@ def find_next_topic(topics_collection: Collection) -> Topic:
     
     """
     # Find the first topic found in the topics collection
-    topic_bson = topics_collection.find_one()
+    topics = topics_collection.find().to_list()
+    
+    topics_len = len(topics)
+    
+    random_index = int(random() * topics_len)
+    topic_bson = topics[random_index]
     
     # Return a Topic object
     return Topic.from_bson(topic_bson)

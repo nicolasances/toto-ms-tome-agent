@@ -4,7 +4,7 @@ from flask_cors import CORS
 from dlg.getTopics import get_topics
 from dlg.tr.answer import rate_answer
 from dlg.tr.get import get_running_topic_review, get_topic_review
-from dlg.tr.new import new_topic_review
+from dlg.tr.new import new_topic_review, pick_next_topic_to_review
 from dlg.tr.question import get_next_question, get_question, get_questions
 from dlg.tr.refresher import provide_refresher
 
@@ -20,6 +20,10 @@ def smoke():
 @app.route('/topicreviews', methods=['POST'])
 def post_topic_review_route(): 
     return new_topic_review(request)
+
+@app.route('/topicreviews/next', methods=['GET'])
+def get_next_topic_review(): 
+    return pick_next_topic_to_review(request)
 
 @app.route('/topicreviews/running', methods=['GET'])
 def get_running_topic_review_route(): 
