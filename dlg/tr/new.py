@@ -35,7 +35,7 @@ def new_topic_review(request: Request, user_context: UserContext, exec_context: 
         
         # 1. Find the next topic to review
         if topic_code is not None: 
-            topic_bson = topics_coll.find_one({"topicCode": topic_code})
+            topic_bson = topics_coll.find_one({"code": topic_code})
             topic = Topic.from_bson(topic_bson)
         else: 
             topic = find_next_topic(db['topics'])
