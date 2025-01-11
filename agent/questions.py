@@ -9,6 +9,7 @@ import concurrent.futures
 from kb.kb import KnowledgeBase
 from model.topic import Topic, TopicSection
 from model.topicreview import TopicReviewQuestion
+import random
 
 client = boto3.client("bedrock-runtime", region_name="eu-west-1")
 
@@ -49,9 +50,20 @@ class QuestionsGenerator:
         Returns:
             List[GeneratedQuestions]: a list of GeneratedQuestions
         """
+        # 1. Limit the length of sections considered. 
+        # For that we will randomly pick a number of sections
+        max_sections = 8
+        
+        if len(topic.sections) > max_sections:
+            chosen_sections = random.sample(topic.sections, max_sections)
+        else: 
+            chosen_sections = topic.sections
+            
+        self.exec_context.logger.log(self.exec_context.cid, f'Generating questions for {len(chosen_sections)} sections in topic {topic.code}')
+        self.exec_context.logger.log(self.exec_context.cid, f'{[section.code for section in chosen_sections]}')
         
         with concurrent.futures.ThreadPoolExecutor() as executor_topic:
-            futures = [executor_topic.submit(self.generate_questions, topic, section) for section in topic.sections]
+            futures = [executor_topic.submit(self.generate_questions, topic, section) for section in chosen_sections]
             results:  List[GeneratedQuestions] = [future.result() for future in concurrent.futures.as_completed(futures)]
         
         # In the results, every item of the list is a GeneratedQuestions object, that contains the questions for a section of the topic
