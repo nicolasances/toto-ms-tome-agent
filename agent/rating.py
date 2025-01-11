@@ -51,9 +51,9 @@ class RatingReasoningAgent:
         
         # 2. Define the First Prompt
         system_prompt = f"""
-        You are a Quiz engine and you have previously generated some questions based on a knowledge base. 
-        You are going to be provided a question (that you generated) and the user's answer to that question. 
-        You are asked to rate the answer on a scale from 1 to 5, 1 being the lowest score, 5 the highest. 
+        You are a Rating Agent in the context of a Quiz Game. 
+        The Quiz Engine has generated a question based on a Knowledge Base. A User has given an answer to that question. 
+        Your responsibility is to decide if the User has memorized well the core of the content of the Knowledge Base and rate the User's answer to the question, ONLY based on the Knowledge Base content. 
         This is the KNOWLEDGE BASE:
         ----------------
         {kb}
@@ -67,16 +67,17 @@ class RatingReasoningAgent:
         {answer}
         ----------------
         Rate the answer as a float with maximum one decimal number.
-        You MUST only use the knowledge base to rate the answer. 
-        If some information is provided in the answer and cannot be found in the knowledge base, ignore it and do not mention it in your explanations. 
+        The Knowledge Base is the main source for rating the answer, but if you have additional knowledge to rate it, you can use it. 
 
         To rate the answer you MUST perform the following steps: 
-        1. List the most important aspects as a short list
-        2. Check how many of those aspects are covered by the answer
-        3. Rate the answer
-            - if the answer misses half or more main aspects, it should NOT get a rating higher than 2
-            - if the answer gets all the important aspects it should get a rating of 5. 
-            - Minor omissions must be ignored. 
+        1. List the main aspects present in the Knowledge Base that are answering the question
+        2. Check how many of those aspects are covered by the answer. 
+        3. Rate the answer considering the following scale: 
+            - 0 if the User has not answered or answered that he-she does not remember (or similar)
+            - 1-2.5 if the User's answer misses some important aspect of the answer
+            - 2.5-4 if the User's catches the main aspects
+            - 5 if the User catches all the main aspects and provdes that he-she has memorized well the topic
+        4. Provide what the right answer should have been. 
         """
 
         conversation = [
@@ -140,7 +141,7 @@ class FormattingAgent:
 
         Provide the rating in a JSON format. You must provide at least the following fields:
         - rating which will contain the rating value as a float
-        - explanation which will contain the explanations for the rating, with corrections of what the user got wrong. Be synthetic. 
+        - explanation which will contain both the explanations for the rating and what the right answer should have been. 
 
         ONLY provide the answer in a JSON format. Do not provide additional text. 
         """

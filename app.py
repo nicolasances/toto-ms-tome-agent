@@ -2,6 +2,7 @@ from flask import Flask, request
 from flask_cors import CORS
 
 from dlg.getTopics import get_topics
+from dlg.test.qg import generate_test_questions
 from dlg.tr.answer import rate_answer
 from dlg.tr.get import get_running_topic_review, get_topic_review
 from dlg.tr.new import new_topic_review, pick_next_topic_to_review
@@ -57,6 +58,10 @@ def post_answer():
 def get_topics_list():
     return get_topics(request)
 
+
+@app.route('/test/tr/questions', methods=['POST'])
+def generate_test_questions_route(): 
+    return generate_test_questions(request)
 
 if __name__ == '__main__':
     app.run()

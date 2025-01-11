@@ -125,7 +125,7 @@ class TopicReviewQuestion:
     explanations: str  = None
     detailed_explanation: str = None 
     
-    def __init__(self, topic_review_id: str, section_code: str, section_title: str, question: str, question_num: int, num_questions_in_tr: int):
+    def __init__(self, topic_review_id: str, section_code: str, section_title: str, question: str, question_num: int, num_questions_in_tr: int = 0):
         self.topic_review_id = topic_review_id
         self.section_code = section_code
         self.section_title = section_title
