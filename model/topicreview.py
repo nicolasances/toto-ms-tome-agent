@@ -106,6 +106,7 @@ class AnswerRating:
 class TopicReviewQuestion: 
     
     topic_review_id: str # The id of the Topic Review the question belongs to
+    topic_code: str 
     
     section_code: str   # The code of the section the question belongs to
     section_title: str  # The title of the section the question belongs to
@@ -125,7 +126,8 @@ class TopicReviewQuestion:
     explanations: str  = None
     detailed_explanation: str = None 
     
-    def __init__(self, topic_review_id: str, section_code: str, section_title: str, question: str, question_num: int, num_questions_in_tr: int = 0):
+    def __init__(self, topic_code: str, topic_review_id: str, section_code: str, section_title: str, question: str, question_num: int, num_questions_in_tr: int = 0):
+        self.topic_code = topic_code
         self.topic_review_id = topic_review_id
         self.section_code = section_code
         self.section_title = section_title
@@ -140,6 +142,7 @@ class TopicReviewQuestion:
             return TopicReviewQuestion()
         
         trq = TopicReviewQuestion(
+            data['topicCode'], 
             data['topicReviewId'], 
             data['sectionCode'], 
             data['sectionTitle'], 
@@ -165,6 +168,7 @@ class TopicReviewQuestion:
         """
         return {
             "topicReviewId": self.topic_review_id, 
+            "topicCode": self.topic_code, 
             "sectionCode": self.section_code, 
             "sectionTitle": self.section_title, 
             "question": self.question, 
@@ -184,6 +188,7 @@ class TopicReviewQuestion:
         """
         return {
             "id": self.id, 
+            "topicCode": self.topic_code, 
             "topicReviewId": self.topic_review_id, 
             "sectionCode": self.section_code, 
             "sectionTitle": self.section_title, 

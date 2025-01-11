@@ -80,6 +80,7 @@ class QuestionsGenerator:
                 order = i * len(result.questions) + j + 1
                 
                 trq = TopicReviewQuestion(
+                    topic_code = topic.code, 
                     topic_review_id = topic_review_id,
                     section_code = result.section.code,
                     section_title = result.section.title,
