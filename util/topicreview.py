@@ -24,4 +24,3 @@ def find_next_topic(topics_collection: Collection) -> Topic:
     # Return a Topic object
     return Topic.from_bson(topic_bson)
     
-    

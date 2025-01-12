@@ -29,8 +29,13 @@ class GeneratedQuestions:
         self.response_time = response_time
         self.response_time_unit = response_time_unit
         self.questions = questions
+
+
     
 class QuestionsGenerator: 
+    """Questions generator
+    Generates all the questions for a given topic in order to create a Topic Review
+    """
     
     model_id = 'eu.anthropic.claude-3-5-sonnet-20240620-v1:0'
     
@@ -50,46 +55,43 @@ class QuestionsGenerator:
         Returns:
             List[GeneratedQuestions]: a list of GeneratedQuestions
         """
-        # 1. Limit the length of sections considered. 
-        # For that we will randomly pick a number of sections
-        max_sections = 8
+        # 1. Split the sections in chunks of 10
+        chunk_size = 10
+        chunks = [topic.sections[i:i + chunk_size] for i in range(0, len(topic.sections), chunk_size)]
         
-        if len(topic.sections) > max_sections:
-            chosen_sections = random.sample(topic.sections, max_sections)
-        else: 
-            chosen_sections = topic.sections
-            
-        self.exec_context.logger.log(self.exec_context.cid, f'Generating questions for {len(chosen_sections)} sections in topic {topic.code}')
-        self.exec_context.logger.log(self.exec_context.cid, f'{[section.code for section in chosen_sections]}')
+        # 2. For each chunk, parallelize the question generation
         
-        with concurrent.futures.ThreadPoolExecutor() as executor_topic:
-            futures = [executor_topic.submit(self.generate_questions, topic, section) for section in chosen_sections]
-            results:  List[GeneratedQuestions] = [future.result() for future in concurrent.futures.as_completed(futures)]
-        
-        # In the results, every item of the list is a GeneratedQuestions object, that contains the questions for a section of the topic
-        # Create a list of TopicReviewQuestion
+        # List of questions for the Topic Review
         questions: List[TopicReviewQuestion] = []
         
-        # Sort results by section order
-        results.sort(key=lambda x: x.section.order)
-        
-        # For each item in results, extract the list of questions and translate into a list of TopicReviewQuestion objects to be appended to the questions array
-        for i, result in enumerate(results):
-            for j, question in enumerate(result.questions):
-                # Define the sequence order of the question in the topic review. Order is 1-indexed
-                order = i * len(result.questions) + j + 1
+        # Go through each chunk of sections and generate the questions
+        for chunk in chunks: 
+            # Parallelize the generation of questions
+            with concurrent.futures.ThreadPoolExecutor() as executor_topic:
+                futures = [executor_topic.submit(self.generate_questions, topic, section) for section in topic.sections]
+                results:  List[GeneratedQuestions] = [future.result() for future in concurrent.futures.as_completed(futures)]
+            
+            # Sort the sections by their order
+            results.sort(key=lambda x: x.section.order)
+            
+            # For each item in results, extract the list of questions and translate into a list of TopicReviewQuestion objects to be appended to the questions array
+            for i, result in enumerate(results):
+                for j, question in enumerate(result.questions):
+                    # Define the sequence order of the question in the topic review. Order is 1-indexed
+                    order = i * len(result.questions) + j + 1
+                    
+                    trq = TopicReviewQuestion(
+                        topic_code = topic.code, 
+                        topic_review_id = topic_review_id,
+                        section_code = result.section.code,
+                        section_title = result.section.title,
+                        question = question,
+                        question_num = order
+                    )
+                    
+                    questions.append(trq)
                 
-                trq = TopicReviewQuestion(
-                    topic_code = topic.code, 
-                    topic_review_id = topic_review_id,
-                    section_code = result.section.code,
-                    section_title = result.section.title,
-                    question = question,
-                    question_num = order
-                )
-                
-                questions.append(trq)
-                
+        # Update the questions with the total number of generated questions
         num_questions_in_tr = len(questions)
         
         for q in questions: 
@@ -114,9 +116,9 @@ class QuestionsGenerator:
         
         # Pick up the Generators
         generators = [
+            SequenceQG(self.exec_context, num_questions=1), 
             GenericQG(self.exec_context, num_questions=2),
             DatesAndNamesQG(self.exec_context, num_questions=1), 
-            SequenceQG(self.exec_context, num_questions=1)
         ]
         
         # 2. Generate the questions
