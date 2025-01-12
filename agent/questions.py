@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import random
 from typing import List
 import boto3
 from botocore.exceptions import ClientError
@@ -118,12 +119,38 @@ class QuestionsGenerator:
         # 1. Load the context
         kb = KnowledgeBase(self.exec_context).get_knowledge(topic.code, section.code)
         
+        # Standardize the length of the section 
+        if section.length is None: 
+            section_length = 'm'
+        elif section.length < 1500: 
+            section_length = 's'
+        elif section.length < 2900: 
+            section_length = 'm'
+        elif section.length < 4000: 
+            section_length = 'l'
+        else:
+            section_length = 'xl'
+        
         # Pick up the Generators
-        generators = [
-            SequenceQG(self.exec_context, num_questions=1), 
-            GenericQG(self.exec_context, num_questions=2),
-            DatesAndNamesQG(self.exec_context, num_questions=1), 
-        ]
+        # Each generator will have a different number and type of questions, based on the length of the section
+        generators = []
+        
+        if section_length == 's': 
+            generators.append(SequenceQG(self.exec_context, num_questions=1))
+        elif section_length == 'm': 
+            random_gen = [SequenceQG(self.exec_context, num_questions=1), GenericQG(self.exec_context, num_questions=1)]
+            
+            generators.append(random.choice(random_gen))
+            generators.append(DatesAndNamesQG(self.exec_context, num_questions=1))
+        elif section_length == 'l': 
+            generators.append(SequenceQG(self.exec_context, num_questions=1))
+            generators.append(GenericQG(self.exec_context, num_questions=1))
+            generators.append(DatesAndNamesQG(self.exec_context, num_questions=2))
+        else: 
+            generators.append(SequenceQG(self.exec_context, num_questions=1))
+            generators.append(GenericQG(self.exec_context, num_questions=2))
+            generators.append(DatesAndNamesQG(self.exec_context, num_questions=3))
+            
         
         # 2. Generate the questions
         start_time = time.time()
@@ -138,7 +165,7 @@ class QuestionsGenerator:
         # Flatten the results
         flattened_results = [question for sublist in results for question in sublist]
         
-        self.exec_context.logger.log(self.exec_context.cid, f'Generated {len(flattened_results)} Questions for section {section.code}')
+        self.exec_context.logger.log(self.exec_context.cid, f'Generated {len(flattened_results)} Questions for section {section.code} which had length {section.length} ({section_length})')
             
         # Create a GeneratedQuestions 
         return GeneratedQuestions(

@@ -6,11 +6,13 @@ class TopicSection:
     
     title: str 
     code: str 
+    length: int
     order: int = None
     
-    def __init__(self, title: str, code: str, order: int = None): 
+    def __init__(self, title: str, code: str, length: int, order: int = None): 
         self.title = title
         self.code = code
+        self.length = length
         self.order = order
     
     
@@ -27,7 +29,8 @@ class Topic:
         return Topic(
             title=bson["title"], 
             code=bson["code"], 
-            sections=[TopicSection(title=section["title"], code=section["code"], order=section.get("order")) for section in bson["sections"]], 
+            # The 1000 is there purely for backward compatibility. Could be removed
+            sections=[TopicSection(title=section["title"], code=section["code"], length=section.get("length", 1000), order=section.get("order")) for section in bson["sections"]], 
             blog_url=bson.get('blog_url')
         )
         
