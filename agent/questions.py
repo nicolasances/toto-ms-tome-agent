@@ -9,9 +9,10 @@ import concurrent.futures
 from kb.kb import KnowledgeBase
 from model.topic import Topic, TopicSection
 from model.topicreview import TopicReviewQuestion
-import random
 
-client = boto3.client("bedrock-runtime", region_name="eu-west-1")
+# client = boto3.client("bedrock-runtime", region_name="eu-west-1")
+client = boto3.client("bedrock-runtime", region_name="us-east-1")
+model_id = 'us.anthropic.claude-3-5-haiku-20241022-v1:0'
 
 @dataclass
 class GeneratedQuestions: 
@@ -37,8 +38,6 @@ class QuestionsGenerator:
     Generates all the questions for a given topic in order to create a Topic Review
     """
     
-    model_id = 'eu.anthropic.claude-3-5-sonnet-20240620-v1:0'
-    
     def __init__(self, exec_context: ExecutionContext):
         self.exec_context = exec_context;
         self.logger = exec_context.logger
@@ -55,8 +54,11 @@ class QuestionsGenerator:
         Returns:
             List[GeneratedQuestions]: a list of GeneratedQuestions
         """
-        # 1. Split the sections in chunks of 10
-        chunk_size = 10
+        logger = self.exec_context.logger 
+        cid = self.exec_context.cid
+        
+        # 1. Split the sections in chunks of given size
+        chunk_size = 15
         chunks = [topic.sections[i:i + chunk_size] for i in range(0, len(topic.sections), chunk_size)]
         
         # 2. For each chunk, parallelize the question generation
@@ -65,10 +67,13 @@ class QuestionsGenerator:
         questions: List[TopicReviewQuestion] = []
         
         # Go through each chunk of sections and generate the questions
-        for chunk in chunks: 
+        for i, chunk in enumerate(chunks): 
+            
+            logger.log(cid, f'Generating questions for Sections Chunk {i}')
+            
             # Parallelize the generation of questions
             with concurrent.futures.ThreadPoolExecutor() as executor_topic:
-                futures = [executor_topic.submit(self.generate_questions, topic, section) for section in topic.sections]
+                futures = [executor_topic.submit(self.generate_questions, topic, section) for section in chunk]
                 results:  List[GeneratedQuestions] = [future.result() for future in concurrent.futures.as_completed(futures)]
             
             # Sort the sections by their order
@@ -154,8 +159,6 @@ class GenericQG:
     """This Question Generator generates a set of questions that are generic on the topic. 
     """
     
-    model_id = 'eu.anthropic.claude-3-5-sonnet-20240620-v1:0'
-    
     def __init__(self, exec_context: ExecutionContext, num_questions: int = 1):
         self.exec_context = exec_context;
         self.logger = exec_context.logger
@@ -188,7 +191,7 @@ class GenericQG:
             # Send the message to the model, using a basic inference configuration.
             # Using a higher temperature because I do want some variance in the questions, with t=0 I always get the same questions
             response = client.converse(
-                modelId=self.model_id,
+                modelId=model_id,
                 messages=conversation,
                 inferenceConfig={"maxTokens": 2000, "temperature": 0.3, "topP": 0.9},
             )
@@ -206,7 +209,7 @@ class GenericQG:
             raise e
         
         except (ClientError, Exception) as e:
-            print(f"ERROR: Can't invoke '{self.model_id}'. Reason: {e}")
+            print(f"ERROR: Can't invoke '{model_id}'. Reason: {e}")
             exit(1)
             
             
@@ -217,8 +220,6 @@ class DatesAndNamesQG:
     """This Question Generator generates a set of questions that only relate to dates and names. 
     It will ask the user questions like "In which date did .... happen?" or "What was the name of the person that ....?"
     """
-    
-    model_id = 'eu.anthropic.claude-3-5-sonnet-20240620-v1:0'
     
     def __init__(self, exec_context: ExecutionContext, num_questions: int = 1):
         self.exec_context = exec_context;
@@ -265,7 +266,7 @@ class DatesAndNamesQG:
             # Send the message to the model, using a basic inference configuration.
             # Using a higher temperature because I do want some variance in the questions, with t=0 I always get the same questions
             response = client.converse(
-                modelId=self.model_id,
+                modelId=model_id,
                 messages=conversation,
                 inferenceConfig={"maxTokens": 2000, "temperature": 0.3, "topP": 0.9},
             )
@@ -283,7 +284,7 @@ class DatesAndNamesQG:
             raise e
         
         except (ClientError, Exception) as e:
-            print(f"ERROR: Can't invoke '{self.model_id}'. Reason: {e}")
+            print(f"ERROR: Can't invoke '{model_id}'. Reason: {e}")
             exit(1)
             
 
@@ -294,8 +295,6 @@ class SequenceQG:
     """This Question Generator generates questions focused on a sequence of event. 
     It will ask the user questions like "Describe the sequence of events of ... "
     """
-    
-    model_id = 'eu.anthropic.claude-3-5-sonnet-20240620-v1:0'
     
     def __init__(self, exec_context: ExecutionContext, num_questions: int = 1):
         self.exec_context = exec_context;
@@ -341,7 +340,7 @@ class SequenceQG:
             # Send the message to the model, using a basic inference configuration.
             # Using a higher temperature because I do want some variance in the questions, with t=0 I always get the same questions
             response = client.converse(
-                modelId=self.model_id,
+                modelId=model_id,
                 messages=conversation,
                 inferenceConfig={"maxTokens": 2000, "temperature": 0.3, "topP": 0.9},
             )
@@ -359,6 +358,6 @@ class SequenceQG:
             raise e
         
         except (ClientError, Exception) as e:
-            print(f"ERROR: Can't invoke '{self.model_id}'. Reason: {e}")
+            print(f"ERROR: Can't invoke '{model_id}'. Reason: {e}")
             exit(1)
             
