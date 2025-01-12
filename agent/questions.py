@@ -324,7 +324,8 @@ class SequenceQG:
         ----------------
         {kb}
         ----------------
-        Generate {self.num_questions} questions that require the user to describe a sequence of events described in the Knowledge Base. 
+        Generate {self.num_questions} questions that require the user to describe the main sequence of events described in the Knowledge Base. 
+        The question must start with a small introduction (a couple of sentences) of the topic, to contextualize the question. You can add your own knowledge (not necessarily in the knowledge base) to this. 
         Provide the questions as a JSON object with only one field called questions which will be an array of strings.
         Do not provide anything else. Only provide a JSON object. No other text.
         """
