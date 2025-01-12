@@ -67,9 +67,9 @@ class QuestionsGenerator:
         questions: List[TopicReviewQuestion] = []
         
         # Go through each chunk of sections and generate the questions
-        for i, chunk in enumerate(chunks): 
+        for c, chunk in enumerate(chunks): 
             
-            logger.log(cid, f'Generating questions for Sections Chunk {i}')
+            logger.log(cid, f'Generating questions for Sections Chunk {c}')
             
             # Parallelize the generation of questions
             with concurrent.futures.ThreadPoolExecutor() as executor_topic:
@@ -81,9 +81,8 @@ class QuestionsGenerator:
             
             # For each item in results, extract the list of questions and translate into a list of TopicReviewQuestion objects to be appended to the questions array
             for i, result in enumerate(results):
+                
                 for j, question in enumerate(result.questions):
-                    # Define the sequence order of the question in the topic review. Order is 1-indexed
-                    order = i * len(result.questions) + j + 1
                     
                     trq = TopicReviewQuestion(
                         topic_code = topic.code, 
@@ -91,7 +90,7 @@ class QuestionsGenerator:
                         section_code = result.section.code,
                         section_title = result.section.title,
                         question = question,
-                        question_num = order
+                        question_num = len(questions) + 1
                     )
                     
                     questions.append(trq)
@@ -101,7 +100,7 @@ class QuestionsGenerator:
         
         for q in questions: 
             q.num_questions_in_tr = num_questions_in_tr
-        
+            
         return questions
     
     def generate_questions(self, topic: Topic, section: TopicSection) -> GeneratedQuestions: 
@@ -139,7 +138,7 @@ class QuestionsGenerator:
         # Flatten the results
         flattened_results = [question for sublist in results for question in sublist]
         
-        self.exec_context.logger.log(self.exec_context.cid, f'Generated Questions for section {section.code}')
+        self.exec_context.logger.log(self.exec_context.cid, f'Generated {len(flattened_results)} Questions for section {section.code}')
             
         # Create a GeneratedQuestions 
         return GeneratedQuestions(
@@ -174,7 +173,7 @@ class GenericQG:
         ----------------
         {kb}
         ----------------
-        Generate {self.num_questions} questions based on the KB. 
+        Generate {'A SINGLE QUESTION' if self.num_questions == 1 else f"{self.num_questions} questions" } based on the KB. 
         Questions should require a bit of elaboration, not just a few words as an answer. 
         Provide the questions as a JSON object with only one field called questions which will be an array of strings.
         Do not provide anything else. Only provide a JSON object. No other text.
@@ -200,6 +199,10 @@ class GenericQG:
             response_text = response["output"]["message"]["content"][0]["text"]
             
             questions = json.loads(response_text)['questions']
+            
+            # If there are more questions than the self.num_questions, discard the last ones
+            if len(questions) > self.num_questions:
+                questions = questions[:self.num_questions]
         
             # Return the list of questions
             return questions
@@ -248,7 +251,7 @@ class DatesAndNamesQG:
         ----------------
         {kb}
         ----------------
-        Generate {self.num_questions} questions that can either be:
+        Generate {'A SINGLE QUESTION' if self.num_questions == 1 else f"{self.num_questions} questions" } that can either be:
         1. A question on a date (e.g. on what date did this event ... happen?)
         2. A question on a name (e.g. what was the name of the person that ...?)
         Provide the questions as a JSON object with only one field called questions which will be an array of strings.
@@ -275,6 +278,10 @@ class DatesAndNamesQG:
             response_text = response["output"]["message"]["content"][0]["text"]
             
             questions = json.loads(response_text)['questions']
+            
+            # If there are more questions than the self.num_questions, discard the last ones
+            if len(questions) > self.num_questions:
+                questions = questions[:self.num_questions]
         
             # Return the list of questions
             return questions
@@ -323,7 +330,7 @@ class SequenceQG:
         ----------------
         {kb}
         ----------------
-        Generate {self.num_questions} questions that require the user to describe the main sequence of events described in the Knowledge Base. 
+        Generate {'A SINGLE QUESTION' if self.num_questions == 1 else f"{self.num_questions} questions" } that require the user to describe the main sequence of events described in the Knowledge Base. 
         The question must start with a small introduction (a couple of sentences) of the topic, to contextualize the question. You can add your own knowledge (not necessarily in the knowledge base) to this. 
         Provide the questions as a JSON object with only one field called questions which will be an array of strings.
         Do not provide anything else. Only provide a JSON object. No other text.
@@ -349,6 +356,10 @@ class SequenceQG:
             response_text = response["output"]["message"]["content"][0]["text"]
             
             questions = json.loads(response_text)['questions']
+            
+            # If there are more questions than the self.num_questions, discard the last ones
+            if len(questions) > self.num_questions:
+                questions = questions[:self.num_questions]
         
             # Return the list of questions
             return questions
