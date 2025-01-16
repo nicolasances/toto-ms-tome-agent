@@ -33,4 +33,5 @@ class Topic:
             sections=[TopicSection(title=section["title"], code=section["code"], length=section.get("length", 1000), order=section.get("order")) for section in bson["sections"]], 
             blog_url=bson.get('blog_url')
         )
+    
         

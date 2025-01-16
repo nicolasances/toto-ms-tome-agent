@@ -27,13 +27,15 @@ def find_next_topic(topics_collection: Collection, topic_reviews_coll: Collectio
     # The last topic standing is the oldest topic that has been reviewed, and should be the next in line.
     for tr in trs: 
         
+        # If there's only one topic left, return that one: it's the one reviewed the farthest
+        if len(topics) == 1: 
+            break
+        
         topic_review = TopicReview.from_bson(tr)
         
         topics = [topic for topic in topics if Topic.from_bson(topic).code != topic_review.topic_code]
         
-        # If there's only one topic left, return that one: it's the one reviewed the farthest
-        if len(topic_codes) == 1: 
-            return topics[0]
+    return Topic.from_bson(topics[0])
     
-    return {}
+    
     
