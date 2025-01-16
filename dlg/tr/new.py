@@ -38,7 +38,7 @@ def new_topic_review(request: Request, user_context: UserContext, exec_context: 
             topic_bson = topics_coll.find_one({"code": topic_code})
             topic = Topic.from_bson(topic_bson)
         else: 
-            topic = find_next_topic(db['topics'])
+            topic = find_next_topic(db['topics'], db['topicReviews'])
         
         # 2. Create a TopicReview and save it to the database
         tr = TopicReview(topic.code, topic.title)
@@ -88,7 +88,7 @@ def pick_next_topic_to_review(request: Request, user_context: UserContext, exec_
         tr_collection = db['topicReviews']
         
         # 1. Find the next topic to review
-        topic: Topic = find_next_topic(db['topics'])
+        topic: Topic = find_next_topic(db['topics'], db['topicReviews'])
         
         # 5. Return the TopicReview and the questions
         return topic.__dict__
