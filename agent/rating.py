@@ -78,6 +78,8 @@ class RatingReasoningAgent:
             - 2.5-4 if the User's catches the main aspects
             - 5 if the User catches all the main aspects and provdes that he-she has memorized well the topic
         4. Provide what the right answer should have been. 
+        
+        If the question was about providing a date or a name, and only required a single-word answer, ONLY rate if the answer was objectively correct. The User WAS NOT REQUIRED to provide more detail.
         """
 
         conversation = [
