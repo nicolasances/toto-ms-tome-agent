@@ -40,12 +40,16 @@ def compute_mem_levels(topics: List[Topic]) -> List[Topic]:
     
     # 2. Apply the fogetting rate
     for topic in topics: 
-        
         if topic.last_reviewed_on:
             last_reviewed_date = datetime.strptime(topic.last_reviewed_on, '%Y%m%d')
             days_since_review = (datetime.now() - last_reviewed_date).days
-            topic.mem_level = max(0, topic.last_rating - forgetting_rate * days_since_review)
+            
+            if days_since_review > 14:
+                effective_days = days_since_review - 14
+                topic.mem_level = max(0, topic.last_rating - forgetting_rate * effective_days)
+            else:
+                topic.mem_level = topic.last_rating
         else:
-            topic.mem_level = 0
-        
+            topic.mem_level = 0 
+    
     return topics
