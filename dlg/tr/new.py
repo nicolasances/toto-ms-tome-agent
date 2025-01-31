@@ -97,7 +97,7 @@ def pick_next_topic_to_review(request: Request, user_context: UserContext, exec_
         traceback.print_exc()
         return {
             "code": 500, 
-            "msg": "Server Error", 
+            "msg": "Server Error",  
             "error": str(e)
         }
     
