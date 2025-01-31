@@ -7,18 +7,21 @@ import json
 @dataclass
 class Topic:
     topic_code: str
+    topic_title: str
     last_reviewed_on: str
     last_rating: float
     mem_level: float = None
     
-    def __init__(self, code: str, last_reviewed_on: str = None, last_rating: float = None): 
+    def __init__(self, code: str, title: str, last_reviewed_on: str = None, last_rating: float = None): 
         self.topic_code = code
+        self.topic_title = title
         self.last_reviewed_on = last_reviewed_on
         self.last_rating = last_rating
         
     def to_json(self): 
         return {
             'topicCode': self.topic_code,
+            'topicTitle': self.topic_title, 
             'lastReviewedOn': self.last_reviewed_on,
             'lastRating': self.last_rating,
             'memLevel': self.mem_level

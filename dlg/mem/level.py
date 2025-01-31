@@ -34,7 +34,8 @@ def get_mem_levels(request: Request, user_context: UserContext, exec_context: Ex
             "_id": "$topicCode",
             "latestCompletedOn": { "$first": "$completedOn" },
             "rating": { "$first": "$rating" },
-            "maxRating": { "$first": "$maxRating" }
+            "maxRating": { "$first": "$maxRating" },
+            "title": { "$first": "$topicTitle" }
             }}
         ]
         
@@ -45,7 +46,7 @@ def get_mem_levels(request: Request, user_context: UserContext, exec_context: Ex
         
         # 3. Find the topics that have not been reviewed
         reviewed_topic_codes = {topic['_id'] for topic in reviewed_topics}
-        unreviewed_topics = [topic['code'] for topic in topics if topic['code'] not in reviewed_topic_codes]
+        unreviewed_topics = [topic for topic in topics if topic['code'] not in reviewed_topic_codes]
         
         # 4. Crete the input for the mem level calculation
         topics_to_score = []
@@ -56,12 +57,12 @@ def get_mem_levels(request: Request, user_context: UserContext, exec_context: Ex
             else: 
                 rating = None
             
-            topic = Topic(code = reviewed_topic["_id"], last_reviewed_on = reviewed_topic['latestCompletedOn'], last_rating = rating)
+            topic = Topic(code = reviewed_topic["_id"], title=reviewed_topic['title'], last_reviewed_on = reviewed_topic['latestCompletedOn'], last_rating = rating)
             
             topics_to_score.append(topic)
             
-        for utopic_code in unreviewed_topics: 
-            topics_to_score.append(Topic(code = utopic_code))
+        for utopic in unreviewed_topics: 
+            topics_to_score.append(Topic(code = utopic['code'], title = utopic['title']))
             
             
         # 5. Calculate the Memorization Levels
