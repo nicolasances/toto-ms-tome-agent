@@ -85,7 +85,6 @@ def pick_next_topic_to_review(request: Request, user_context: UserContext, exec_
         client = MongoClient(config.get_mongo_connection_string())
         
         db = client['tome']
-        tr_collection = db['topicReviews']
         
         # 1. Find the next topic to review
         topic: Topic = find_next_topic(db['topics'], db['topicReviews'])
