@@ -8,6 +8,7 @@ from totoapicontroller.TotoDelegateDecorator import toto_delegate
 from totoapicontroller.model.UserContext import UserContext
 from totoapicontroller.model.ExecutionContext import ExecutionContext
 
+from model.timeline import Timeline
 from model.topicreview import TopicReview, TopicReviewQuestion
 
 @toto_delegate(config_class=Config)
@@ -23,6 +24,7 @@ def get_running_topic_review(request: Request, user_context: UserContext, exec_c
         db = client['tome']
         tr_collection = db['topicReviews']
         tr_questions_coll = db['topicReviewQuestions']
+        timeline_coll = db['timelines']
         
         # 1. Retrieve the running topic review, if any. It's the one that have a null completedOn or a missing completedOn
         tr_bson = tr_collection.find_one({ "$or": [ { "completedOn": { "$exists": False } }, { "completedOn": None } ] })
@@ -32,11 +34,15 @@ def get_running_topic_review(request: Request, user_context: UserContext, exec_c
         
         # 2. Revtrieve the questions of that topic review sorted by question order
         tr_questions = tr_questions_coll.find({ "topicReviewId": str(tr_bson["_id"]) }).sort({"questionNum": ASCENDING})
+        
+        # 3. Retrieve the timeline for this topic
+        timeline_items_bson = timeline_coll.find({ "topicCode": tr_bson['topicCode'] }).to_list()
     
-        # 2. Return the TopicReview and its questions
+        # 4. Return the TopicReview and its questions
         return {
             "topicReview": TopicReview.from_bson(tr_bson).to_json(), 
-            "questions": [TopicReviewQuestion.from_bson(q).to_json() for q in tr_questions]
+            "questions": [TopicReviewQuestion.from_bson(q).to_json() for q in tr_questions], 
+            "timeline": Timeline.from_bson(timeline_items_bson).to_json()
         }
     
     except Exception as e: 
@@ -70,6 +76,7 @@ def get_topic_review(request: Request, user_context: UserContext, exec_context: 
         db = client['tome']
         tr_collection = db['topicReviews']
         tr_questions_coll = db['topicReviewQuestions']
+        timeline_coll = db['timelines']
         
         # 1. Retrieve the running topic review, if any. It's the one that have a null completedOn or a missing completedOn
         tr_bson = tr_collection.find_one({ "_id": ObjectId(tr_id) })
@@ -80,10 +87,14 @@ def get_topic_review(request: Request, user_context: UserContext, exec_context: 
         # 2. Revtrieve the questions of that topic review sorted by question order
         tr_questions = tr_questions_coll.find({ "topicReviewId": str(tr_bson["_id"]) }).sort({"questionNum": ASCENDING})
         
-        # 2. Return the TopicReview and its questions
+        # 3. Retrieve the timeline for this topic
+        timeline_items_bson = timeline_coll.find({ "topicCode": tr_bson['topicCode'] }).to_list()
+        
+        # 4. Return the TopicReview and its questions
         return {
             "topicReview": TopicReview.from_bson(tr_bson).to_json(), 
-            "questions": [TopicReviewQuestion.from_bson(q).to_json() for q in tr_questions]
+            "questions": [TopicReviewQuestion.from_bson(q).to_json() for q in tr_questions], 
+            "timeline": Timeline.from_bson(timeline_items_bson).to_json()
         }
     
     except Exception as e: 
