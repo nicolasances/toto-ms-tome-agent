@@ -37,6 +37,7 @@ def provide_refresher(request: Request, user_context: UserContext, exec_context:
         tr_coll = db['topicReviews']
         tr_questions_coll = db['topicReviewQuestions']
         topics_coll = db['topics']
+        refreshers_coll = db['refreshers']
         
         # 1. Retrieve the question
         question_bson = tr_questions_coll.find_one({"_id": ObjectId(question_id)})
@@ -51,9 +52,15 @@ def provide_refresher(request: Request, user_context: UserContext, exec_context:
         # 3. Retrieve the Topic, for better context in the answer
         topic = topics_coll.find_one({"code": topic_review.topic_code})
         
-        # 4. Use the Topic Refresher Agent to generate a refresher
-        refersher_text = TopicRefresherAgent(exec_context).generate_refresher(question.question, question.answer, topic_review.topic_code, question.section_code)
+        # 4. Find the pre-generated refresher
+        refresher_bson = refreshers_coll.find_one({"topicCode": question.topic_code, 'sectionCode': question.section_code})
         
+        if refresher_bson is not None: 
+            refersher_text = refresher_bson['refersher']
+        else: 
+            # Use the Topic Refresher Agent to generate a refresher
+            refersher_text = TopicRefresherAgent(exec_context).generate_refresher(question.question, question.answer, topic_review.topic_code, question.section_code)
+            
         return {
             "topic": Topic.from_bson(topic).__dict__,
             "refresher": refersher_text
